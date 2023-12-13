@@ -10,4 +10,4 @@ c++11 线程池<br><br>
 2.方法二（无需事先编译动态库）<br>
 （1）进入当前目录后 g++ testcase.cpp threadpool.cpp -o testcase -std=c++11 -I./<br>
 （2）运行 ./testcase<br>
-ps：注意函数的定义以及如何在线程池中调用请观察测试案例。<br>
+ps：注意函数的定义以及如何在线程池中调用请观察测试案例。<br><br>
