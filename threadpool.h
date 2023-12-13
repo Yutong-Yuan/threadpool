@@ -13,6 +13,15 @@
 #include <condition_variable>
 #include <functional>
 
+//用户可选的设置参数
+const int _taskMaxnum=2048;
+const int _threadsInitnum=4;
+const int _threadsMaxnum=8;
+//工作队列满时最多等待多长时间丢弃任务（单位:ms）
+const int _waitQueNotFullTime=1000;  
+//工作队列空时最多等待多长时间考虑关闭线程（单位:ms）
+const int _waitQueNotEmptyTime=60000;
+
 
 //Task类的前置声明
 class Task;
@@ -167,7 +176,7 @@ public:
     ~ThreadPool();
 
     //以threadsInitnum的线程数量启动线程池，默认是固定数量线程，用户可以传入参数修改线程池模式并且指定最大线程数量
-    void start(int threadsInitnum=4,PoolMode poolMode=PoolMode::ModeFixed,int threadsMaxnum=8);
+    void start(int threadsInitnum=_threadsInitnum,PoolMode poolMode=PoolMode::ModeFixed,int threadsMaxnum=_threadsMaxnum);
     //设置线程池的工作模式
     void setMode(PoolMode poolMode);
 

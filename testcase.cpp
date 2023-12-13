@@ -30,7 +30,8 @@ int main()
         cin.get();
         threadPool.start(6,PoolMode::ModeCached,12);
         Result res1=threadPool.submitTask(make_shared<MyTask>(1,10000));
-        //......
+        long sum=res1.get().cast<long>();
+        cout<<sum<<endl;
         cout<<"press enter to stop threadpool:";
         cin.get();
     }

@@ -4,16 +4,13 @@
 #include <mutex>
 #include <map>
 
-const int taskMaxnum=4096;
-const int threadsMaxnum=6;
-const int threadsInitnum=3;
 
 //ThreadPool类方法
 //构造函数
 ThreadPool::ThreadPool():
     threadsCurnum_(0),
     taskCurnum_(0),
-    taskMaxnum_(taskMaxnum),
+    taskMaxnum_(_taskMaxnum),
     isPoolExit_(false)
     {}
 
@@ -95,7 +92,7 @@ Result ThreadPool::submitTask(std::shared_ptr<Task> sp)
     std::unique_lock<std::mutex> ulock(taskQueMux_);
     //最多阻塞等待1s，若1s任务队列还是满的，则返回false
     //注意lamda表达式的捕获列表（还没听到）
-    if(!notFullCv_.wait_for(ulock,std::chrono::seconds(1),[&]()->bool{return taskQue_.size()<taskMaxnum;}))
+    if(!notFullCv_.wait_for(ulock,std::chrono::milliseconds(_waitQueNotFullTime),[&]()->bool{return taskQue_.size()<taskMaxnum_;}))
     {
         //std::cerr是C++标准库中的一个预定义的输出流，用于向标准错误输出设备发送数据。
         std::cerr<<"task queue is full, submit task failed\n";
@@ -137,7 +134,7 @@ void ThreadPool::threadFunc(int threadId)
             std::unique_lock<std::mutex> ulock(taskQueMux_);
             //notEmpty_.wait(ulock,[&]()->bool{return !taskQue_.empty();});
             //当一个线程等待60s还是没有任务，则可以考虑回收他或者是线程池要退出了要回收所有线程
-            if(!notEmptyCv_.wait_for(ulock,std::chrono::seconds(60),[&]()->bool{return (!taskQue_.empty())||isPoolExit_;}))
+            if(!notEmptyCv_.wait_for(ulock,std::chrono::milliseconds(_waitQueNotEmptyTime),[&]()->bool{return (!taskQue_.empty())||isPoolExit_;}))
             {
                 //当线程池没有关闭但是本线程等待了60s没有任务的时候，若当前线程数量较多则本线程离开
                 if(threadsCurnum_>threadsInitnum_ && poolMode_==PoolMode::ModeCached)
@@ -145,7 +142,7 @@ void ThreadPool::threadFunc(int threadId)
                     threadsCurnum_--;
                     threadsIdlenum_--;
                     threads_.erase(threadId);
-                    std::cout<<"del thread: "<<threadId<<std::endl;
+                    std::cout<<"self del thread: "<<threadId<<std::endl;
                     return;
                 }
                 else continue;
@@ -154,9 +151,8 @@ void ThreadPool::threadFunc(int threadId)
             //当线程池关闭的时候本线程（所有线程）都离开
             if(isPoolExit_)
             {
-                std::cout<<"yyt\n";
                 threadsCurnum_--;
-                std::cout<<"del thread: "<<threadId<<std::endl;
+                std::cout<<"forced del thread: "<<threadId<<std::endl;
                 return;
             }
 
