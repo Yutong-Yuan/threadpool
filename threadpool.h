@@ -62,6 +62,8 @@ public:
 
     //以threadsInitnum的线程数量启动线程池，默认是固定数量线程，用户可以传入参数修改线程池模式并且指定最大线程数量
     void start(int threadsInitnum=_threadsInitnum,PoolMode poolMode=PoolMode::ModeFixed,int threadsMaxnum=_threadsMaxnum);
+    //手动关闭线程池
+    void stop();
     //设置线程池的工作模式
     void setMode(PoolMode poolMode);
 
@@ -82,7 +84,6 @@ public:
 
         std::unique_lock<std::mutex> ulock(taskQueMux_);
         //最多阻塞等待1s，若1s任务队列还是满的，则返回false
-        //注意lamda表达式的捕获列表（还没听到）
         if(!notFullCv_.wait_for(ulock,std::chrono::milliseconds(_waitQueNotFullTime),[&]()->bool{return taskQue_.size()<taskMaxnum_;}))
         {
             //std::cerr是C++标准库中的一个预定义的输出流，用于向标准错误输出设备发送数据。
@@ -153,6 +154,8 @@ private:
 
     //线程池是否消亡
     bool isPoolExit_;
+    //记录stop的次数，防止stop过多影响效率
+    int exitFlags_;
 
 };
 

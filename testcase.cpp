@@ -14,15 +14,15 @@ int func1(int a,int b,int c)
 int main()
 {
     {
-        ThreadPool threadPool;
+        ThreadPool threadPool;                                      //(1)
         cout<<"press enter to start threadpool:";
         cin.get();
-        threadPool.start(6,PoolMode::ModeCached,12);
+        threadPool.start(6,PoolMode::ModeCached,12);                //(2)
         future<int> res[100];
         for(int i=0;i<100;i++)
         {
             function<int(int,int,int)> func=func1;
-            res[i]=threadPool.submitTask(func,10,20,30);
+            res[i]=threadPool.submitTask(func,10,20,30);            //(3)
             this_thread::sleep_for(chrono::milliseconds(10));
         }
         for(int i=0;i<100;i++)

@@ -14,26 +14,9 @@ ThreadPool::ThreadPool():
     {}
 
 //析构函数
-ThreadPool::~ThreadPool(){
-    //等待任务全部完成
-    while (taskCurnum_!=0)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    //线程池结束标志
-    isPoolExit_=true;
-    {
-        std::unique_lock<std::mutex> ulock(taskQueMux_);
-        ulock.unlock();
-        //通知那些等待在没有任务的线程让它们起来
-        notEmptyCv_.notify_all();
-    }   
-    //等待所有线程都正常退出
-    while (threadsCurnum_!=0)
-    {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-    std::cout<<"ThreadsPool is closed\n";
+ThreadPool::~ThreadPool()
+{
+    stop();
 }
 
 //启动线程池
@@ -52,6 +35,7 @@ void ThreadPool::start(int threadsInitnum,PoolMode poolMode,int threadsMaxnum)
     //现在工作线程的数量
     threadsWorknum_=0;
     
+    exitFlags_=0;
     for(int i=0;i<threadsInitnum;i++)
     {   
         //也可以直接隐式类型转换，加入线程
@@ -60,6 +44,34 @@ void ThreadPool::start(int threadsInitnum,PoolMode poolMode,int threadsMaxnum)
     for(int i=0;i<threadsInitnum;i++)
     {
         threads_[i]->start();
+    }
+}
+
+//手动关闭线程池
+void ThreadPool::stop()
+{
+    if(exitFlags_==0)
+    {
+        exitFlags_++;
+         //等待任务全部完成
+        while (taskCurnum_!=0)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        //线程池结束标志
+        isPoolExit_=true;
+        {
+            std::unique_lock<std::mutex> ulock(taskQueMux_);
+            ulock.unlock();
+            //通知那些等待在没有任务的线程让它们起来
+            notEmptyCv_.notify_all();
+        }   
+        //等待所有线程都正常退出
+        while (threadsCurnum_!=0)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+        std::cout<<"ThreadsPool is closed\n";
     }
 }
 
