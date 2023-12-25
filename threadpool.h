@@ -125,7 +125,7 @@ private:
     int threadsInitnum_;
     //系统支持的最大线程数量
     int threadsMaxnum_;
-    //当前线程数量
+    //当前总的线程数量（工作线程+空闲线程）
     std::atomic_int threadsCurnum_;
     //当前工作线程数量
     std::atomic_int threadsWorknum_;
@@ -135,7 +135,7 @@ private:
 
     //工作队列（函数对象版本）（修改）
     using Task=std::function<void()>;
-    std::queue<std::function<void()>> taskQue_;
+    std::queue<Task> taskQue_;
 
     //现在的任务数量 ps：用原子类型来表示，防止计数时出现问题
     std::atomic_int taskCurnum_;

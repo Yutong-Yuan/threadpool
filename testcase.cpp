@@ -11,6 +11,12 @@ int func1(int a,int b,int c)
     return c;
 }
 
+void func2()
+{
+    this_thread::sleep_for(5s);
+    cout<<"ok\n";
+}
+
 int main()
 {
     {
@@ -30,11 +36,12 @@ int main()
             cout<<i<<" : ";
             cout<<res[i].get()<<endl;
         }
+        //阻塞线程设置 判断是否在人工stop线程池之后线程池中即使有正在工作的线程工作完了也可以退出
+        function<void()> func=func2;
+        threadPool.submitTask(func);
         cout<<"press enter to stop threadpool:";
         cin.get();
-        // threadPool.stop();
-        // cout<<"press enter to exit testcase:";
-        // cin.get();
+        threadPool.stop();
     }
     cout<<"press enter to exit testcase:";
     cin.get();

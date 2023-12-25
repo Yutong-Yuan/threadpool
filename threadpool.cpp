@@ -62,7 +62,7 @@ void ThreadPool::stop()
         isPoolExit_=true;
         {
             std::unique_lock<std::mutex> ulock(taskQueMux_);
-            ulock.unlock();
+            //ulock.unlock();
             //通知那些等待在没有任务的线程让它们起来
             notEmptyCv_.notify_all();
         }   
@@ -107,7 +107,7 @@ void ThreadPool::threadFunc(int threadId)
             //当一个线程等待60s还是没有任务，则可以考虑回收他或者是线程池要退出了要回收所有线程
             if(!notEmptyCv_.wait_for(ulock,std::chrono::milliseconds(_waitQueNotEmptyTime),[&]()->bool{return (!taskQue_.empty())||isPoolExit_;}))
             {
-                //当线程池没有关闭但是本线程等待了60s没有任务的时候，若当前线程数量较多则本线程离开
+                //当本线程等待了60s没有任务的时候，若当前线程数量较多则本线程离开
                 if(threadsCurnum_>threadsInitnum_ && poolMode_==PoolMode::ModeCached)
                 {
                     threadsCurnum_--;
@@ -145,8 +145,7 @@ void ThreadPool::threadFunc(int threadId)
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //Thread类方法
 //构造函数
-Thread::Thread(ThreadFunc func,int threadId):func_(func),threadId_(threadId)
-{}
+Thread::Thread(ThreadFunc func,int threadId):func_(func),threadId_(threadId){}
 //析构函数
 Thread::~Thread(){}
 //启动线程
